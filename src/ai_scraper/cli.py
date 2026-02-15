@@ -56,14 +56,21 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_pipeline(config: CrawlConfig) -> int:
-    """Run pipeline orchestration.
-    """
+    """Run the full crawl pipeline."""
 
-    print("Pipeline config validated. Crawl orchestration will be added in next milestone.")
-    print(f"start_url={config.start_url}")
-    print(f"output_path={config.output_path}")
-    print(f"max_pages={config.max_pages}, max_depth={config.max_depth}")
-    return 0
+    from ai_scraper.crawler import Crawler
+
+    try:
+        crawler = Crawler(config)
+        documents = crawler.run()
+        print(f"Done — {len(documents)} documents saved to {config.output_path}")
+        return 0
+    except KeyboardInterrupt:
+        print("\nCrawl interrupted by user.")
+        return 130
+    except Exception as exc:
+        print(f"Fatal error: {exc}")
+        return 1
 
 
 def main(argv: list[str] | None = None) -> int:
