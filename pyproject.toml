@@ -39,7 +39,8 @@ dependencies = [
 
     # Fast HTML/XML parser backend for BeautifulSoup.
     # Much faster than the built-in html.parser; used in production systems.
-    "lxml>=5.0.0,<6.0.0",
+    # [html_clean] extra is needed for trafilatura's dependency chain.
+    "lxml[html_clean]>=5.0.0,<6.0.0",
 
     # Production-grade content extraction (alternative parser backend).
     # Used by HuggingFace, IBM, Microsoft Research for building AI datasets.
