@@ -25,12 +25,20 @@ RUN apt-get update && \
 # so dependencies are only reinstalled when pyproject.toml changes.
 COPY pyproject.toml .
 
-# Create a virtual environment and install dependencies.
+# Create a virtual environment and pre-install dependencies only.
+# We can't run `pip install .` yet because setuptools needs src/ for
+# package discovery. Instead, parse dependencies from pyproject.toml
+# and install them separately so this layer is cached.
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir \
+    "requests>=2.31.0,<3.0.0" \
+    "beautifulsoup4>=4.12.0,<5.0.0" \
+    "lxml[html_clean]>=5.0.0,<6.0.0" \
+    "trafilatura>=2.0.0,<3.0.0" \
+    "langdetect>=1.0.9,<2.0.0"
 
-# Now copy the source code and install the package itself.
+# Now copy the full source and install the package.
 COPY . .
 RUN pip install --no-cache-dir .
 
