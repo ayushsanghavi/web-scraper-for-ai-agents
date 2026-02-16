@@ -23,6 +23,7 @@ class CrawlConfig:
     allowed_path_prefix: str | None = None
     max_retries: int = 2
     retry_backoff_seconds: float = 0.5
+    parser_backend: str = "beautifulsoup"
 
     def __post_init__(self) -> None:
         parsed = urlparse(self.start_url)
@@ -45,6 +46,8 @@ class CrawlConfig:
             raise ValueError("max_retries cannot be negative")
         if self.retry_backoff_seconds < 0:
             raise ValueError("retry_backoff_seconds cannot be negative")
+        if self.parser_backend not in {"beautifulsoup", "trafilatura"}:
+            raise ValueError("parser_backend must be 'beautifulsoup' or 'trafilatura'")
 
         if self.allowed_path_prefix:
             normalized_prefix = self.allowed_path_prefix.strip()
@@ -67,4 +70,5 @@ class CrawlConfig:
             allowed_path_prefix=getattr(args, "allowed_path_prefix"),
             max_retries=int(getattr(args, "max_retries")),
             retry_backoff_seconds=float(getattr(args, "retry_backoff_seconds")),
+            parser_backend=str(getattr(args, "parser_backend", "beautifulsoup")),
         )

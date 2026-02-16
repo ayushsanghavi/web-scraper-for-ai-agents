@@ -259,22 +259,22 @@ class TrafilaturaParser:
             favor_precision=True,
         )
 
-        if result is None or not result.get("text"):
+        if result is None or not getattr(result, "text", None):
             logger.debug("Trafilatura extracted nothing from %s", url)
             return None
 
-        body_text = result["text"]
-        title = result.get("title", "") or ""
+        body_text = result.text
+        title = result.title or ""
 
         meta: dict[str, str] = {}
-        if result.get("author"):
-            meta["author"] = result["author"]
-        if result.get("description"):
-            meta["description"] = result["description"]
-        if result.get("categories"):
-            meta["categories"] = result["categories"]
-        if result.get("tags"):
-            meta["tags"] = str(result["tags"])
+        if getattr(result, "author", None):
+            meta["author"] = result.author
+        if getattr(result, "description", None):
+            meta["description"] = result.description
+        if getattr(result, "categories", None):
+            meta["categories"] = str(result.categories)
+        if getattr(result, "tags", None):
+            meta["tags"] = str(result.tags)
 
         # Link discovery via lxml (fast, no BeautifulSoup overhead).
         links = self._extract_links_lxml(html, url)
