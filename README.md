@@ -4,6 +4,18 @@
 
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue) ![Sandbox](https://img.shields.io/badge/sandbox-books.toscrape.com-green)
 
+## What it does
+
+Point it at any public website and it crawls page by page, strips away HTML boilerplate (nav bars, footers, ads), and outputs clean, structured JSONL documents ready for AI workflows. 
+
+**Key features:**
+- **Two parser backends** : lightweight BeautifulSoup heuristics or ML-based trafilatura extraction
+- **Content classification** : basic heuristics to classify content
+- **Idempotent re-crawls** 
+- **URL filtering** : restrict crawls by path prefix or regex pattern
+- **Polite crawling** : configurable delays, retries, and timeouts
+- **Use as CLI or Python library** 
+
 ---
 
 ## Quick Start
