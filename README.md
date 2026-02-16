@@ -62,7 +62,7 @@ docker run --rm -v $(pwd)/output:/app/output ai-scraper \
 
 ## Analytics Report
 
-Run `python analytics/analyze_collection.py output/collection.jsonl` (add `--html` for a visual dashboard). Each section in the report includes a description explaining what the metric measures and why it matters for AI workflows.
+Run `python analytics/analyze_collection.py output/collection.jsonl` (add `--html` for a visual dashboard). Each metric is self explanatory on the report.
 
 ## Output Schema
 
