@@ -43,6 +43,13 @@ def normalize_url(url: str) -> str:
     # Preserve the path exactly, but guarantee at least a bare "/".
     path = parsed.path or "/"
 
+    # Strip default index filenames so "/" and "/index.html" dedup.
+    _INDEX_FILES = ("index.html", "index.htm", "default.html", "default.htm")
+    for idx_file in _INDEX_FILES:
+        if path.endswith(f"/{idx_file}"):
+            path = path[: -len(idx_file)]
+            break
+
     # Sort query parameters alphabetically and drop tracking noise.
     query_params = parse_qs(parsed.query, keep_blank_values=True)
     filtered = {

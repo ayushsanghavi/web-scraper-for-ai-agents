@@ -129,12 +129,25 @@ class BSoupParser:
 
     @staticmethod
     def _find_main_content(soup: BeautifulSoup) -> Tag:
-        """Locate the main content container using semantic selectors."""
+        """Locate the main content container using semantic selectors.
+
+        When a selector matches a single small element but siblings of the
+        same type exist (e.g. many <article> cards on a listing page), the
+        parent container is returned instead so we capture the full page.
+        """
 
         for selector in _CONTENT_SELECTORS:
             match = soup.select_one(selector)
-            if match and match.get_text(strip=True):
-                return match
+            if not match or not match.get_text(strip=True):
+                continue
+
+            # Guard against selectors that hit one item in a repeated list
+            # (e.g. <article> matching a single product card).
+            siblings = match.parent.select(f":scope > {selector}") if match.parent else []
+            if len(siblings) > 1:
+                return match.parent
+
+            return match
 
         # Fallback: the entire <body>, or the whole soup if no body tag.
         return soup.body or soup
