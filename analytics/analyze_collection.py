@@ -70,7 +70,7 @@ def content_type_breakdown(df: pd.DataFrame) -> None:
     """Distribution of heuristic content types."""
 
     section("CONTENT TYPE BREAKDOWN")
-    print("  Heuristic page classification. Filter training data — e.g. prioritize articles over listings.\n")
+    print("  Heuristic page classification (article, reference, product, profile, listing, faq, other).\n")
 
     type_table = (
         df["content_type"]
@@ -348,7 +348,7 @@ def generate_html_report(df: pd.DataFrame, output_path: str, source_file: str) -
 
   {overview_cards}
   {_card("Content Type Breakdown", ct_section,
-         "Heuristic classification of each page. Use this to filter training data — e.g. prioritize articles over listings.")}
+         "Heuristic classification: article, reference, product, profile, listing, faq, or other.")}
   {_card("Language Distribution", lang_section,
          "Detected language of each document. Route to language-matched embeddings or filter out non-target languages.")}
   {_card("AI Readiness Estimate", ai_section,
