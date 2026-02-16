@@ -39,7 +39,7 @@ class Crawler:
         self._config = config
 
         self._fetcher = PageFetcher(config)
-        self._parser = create_parser("beautifulsoup", config)
+        self._parser = create_parser(config.parser_backend, config)
         self._enricher = DocumentEnricher()
         self._filter = URLFilter(config)
         self._storage = JSONLStorage(config.output_path)

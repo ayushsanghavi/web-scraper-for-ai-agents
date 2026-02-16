@@ -52,6 +52,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.5,
         help="Backoff multiplier between retries",
     )
+    parser.add_argument(
+        "--parser",
+        dest="parser_backend",
+        choices=["beautifulsoup", "trafilatura"],
+        default="beautifulsoup",
+        help="Content extraction backend: 'beautifulsoup' (heuristic) or 'trafilatura' (ML-based)",
+    )
     return parser
 
 
