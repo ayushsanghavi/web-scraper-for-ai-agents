@@ -120,10 +120,6 @@ class JSONLStorage:
             char_count=data["char_count"],
             language=data.get("language"),
             content_type=data.get("content_type"),
-            reading_time_minutes=data.get("reading_time_minutes"),
-            is_mostly_code=data.get("is_mostly_code"),
-            quality_signals=data.get("quality_signals", {}),
-            tags=data.get("tags", []),
-            raw_metadata=data.get("raw_metadata", {}),
+            text_to_html_ratio=data.get("text_to_html_ratio", 0.0),
             links_out_internal=data.get("links_out_internal", []),
         )

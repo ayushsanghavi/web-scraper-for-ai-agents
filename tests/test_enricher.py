@@ -7,7 +7,7 @@ from ai_scraper.enricher import DocumentEnricher
 
 
 def test_enricher_produces_complete_ai_document(sample_parse_result):
-    """Enricher should populate all metadata, signals, and tags
+    """Enricher should populate all metadata fields
     from a ParseResult into a JSON-serializable AIDocument."""
 
     enricher = DocumentEnricher()
@@ -22,12 +22,10 @@ def test_enricher_produces_complete_ai_document(sample_parse_result):
 
     assert doc.word_count > 0
     assert doc.char_count > 0
-    assert doc.reading_time_minutes >= 1
 
     assert doc.language == "en"
 
-    assert "text_to_html_ratio" in doc.quality_signals
-    assert "link_density" in doc.quality_signals
+    assert doc.text_to_html_ratio > 0
 
     # Same URL always gives the same doc_id (idempotency).
     doc2 = enricher.enrich(sample_parse_result, url="https://docs.com/page")

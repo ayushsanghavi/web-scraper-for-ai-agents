@@ -29,11 +29,7 @@ class AIDocument:
     char_count: int
     language: str | None = None
     content_type: str | None = None
-    reading_time_minutes: int | None = None
-    is_mostly_code: bool | None = None
-    quality_signals: dict[str, float] = field(default_factory=dict)
-    tags: list[str] = field(default_factory=list)
-    raw_metadata: dict[str, Any] = field(default_factory=dict)
+    text_to_html_ratio: float = 0.0
     links_out_internal: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:

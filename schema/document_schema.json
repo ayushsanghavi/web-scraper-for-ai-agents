@@ -14,9 +14,7 @@
     "fetched_at",
     "word_count",
     "char_count",
-    "quality_signals",
-    "tags",
-    "raw_metadata",
+    "text_to_html_ratio",
     "links_out_internal"
   ],
   "properties": {
@@ -55,7 +53,7 @@
     },
     "content_type": {
       "type": ["string", "null"],
-      "enum": ["doc_page", "article", "listing", "unknown", null],
+      "enum": ["article", "listing", "unknown", null],
       "description": "Heuristic classification of page intent."
     },
     "word_count": {
@@ -68,33 +66,10 @@
       "minimum": 0,
       "description": "Number of characters in body_text."
     },
-    "reading_time_minutes": {
-      "type": ["integer", "null"],
+    "text_to_html_ratio": {
+      "type": "number",
       "minimum": 0,
-      "description": "Estimated reading time in minutes."
-    },
-    "is_mostly_code": {
-      "type": ["boolean", "null"],
-      "description": "True when content appears code-heavy."
-    },
-    "quality_signals": {
-      "type": "object",
-      "description": "Additional numeric signals useful for ranking/filtering.",
-      "additionalProperties": {
-        "type": "number"
-      }
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Label tags assigned during enrichment."
-    },
-    "raw_metadata": {
-      "type": "object",
-      "description": "Auxiliary metadata captured from the page.",
-      "additionalProperties": true
+      "description": "Ratio of extracted text length to raw HTML length. Higher = cleaner extraction."
     },
     "links_out_internal": {
       "type": "array",

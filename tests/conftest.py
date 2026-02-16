@@ -45,6 +45,5 @@ def sample_parse_result():
         body_text="This is a sufficiently long body text for testing. " * 20,
         links_internal=["https://example.com/page1", "https://example.com/page2"],
         meta={"description": "A test document", "author": "Tester"},
-        code_text_length=0,
         html_length=5000,
     )

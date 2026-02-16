@@ -30,8 +30,7 @@ class ParseResult:
     body_text: str
     links_internal: list[str]
     meta: dict[str, str]
-    code_text_length: int       # chars inside <pre>/<code> blocks
-    html_length: int            # raw HTML length (for text-to-html ratio in analytics)
+    html_length: int            # raw HTML length (for text-to-html ratio)
 
 class ContentParser(Protocol):
     """Interface that both parser backends implement."""
@@ -79,10 +78,6 @@ class BSoupParser:
     def parse(self, html: str, url: str) -> ParseResult | None:
         soup = BeautifulSoup(html, "lxml")
 
-        # Measure code content BEFORE stripping tags, so the enricher
-        # can compute is_mostly_code accurately.
-        code_text_length = self._measure_code(soup)
-
         # --- Step 1: strip noise ---
         self._remove_noise(soup)
 
@@ -105,20 +100,10 @@ class BSoupParser:
             body_text=body_text,
             links_internal=links,
             meta=meta,
-            code_text_length=code_text_length,
             html_length=len(html),
         )
 
     # internals
-
-    @staticmethod
-    def _measure_code(soup: BeautifulSoup) -> int:
-        """Total character count inside <pre> and <code> blocks."""
-
-        code_chars = 0
-        for tag in soup.find_all(["pre", "code"]):
-            code_chars += len(tag.get_text())
-        return code_chars
 
     @staticmethod
     def _remove_noise(soup: BeautifulSoup) -> None:
@@ -279,15 +264,11 @@ class TrafilaturaParser:
         # Link discovery via lxml (fast, no BeautifulSoup overhead).
         links = self._extract_links_lxml(html, url)
 
-        # Approximate code text length from <pre>/<code> via lxml.
-        code_text_length = self._measure_code_lxml(html)
-
         return ParseResult(
             title=title,
             body_text=body_text,
             links_internal=links,
             meta=meta,
-            code_text_length=code_text_length,
             html_length=len(html),
         )
 
@@ -321,21 +302,6 @@ class TrafilaturaParser:
 
         return links
 
-    @staticmethod
-    def _measure_code_lxml(html: str) -> int:
-        """Measure code content length using lxml."""
-
-        from lxml import html as lxml_html
-
-        try:
-            doc = lxml_html.fromstring(html)
-        except Exception:
-            return 0
-
-        total = 0
-        for tag in doc.iter("pre", "code"):
-            total += len(tag.text_content())
-        return total
 
 
 # Quality scorer — used by compare mode and potential future auto-selection
