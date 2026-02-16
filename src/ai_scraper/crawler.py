@@ -22,7 +22,7 @@ from ai_scraper.filters import URLFilter
 from ai_scraper.models import AIDocument, CrawlTask
 from ai_scraper.parser import create_parser
 from ai_scraper.storage import JSONLStorage
-from ai_scraper.utils import normalize_url, setup_logging
+from ai_scraper.utils import get_domain, normalize_url, setup_logging
 
 logger = logging.getLogger("ai_scraper")
 
@@ -66,17 +66,20 @@ class Crawler:
         )
 
         seed = normalize_url(self._config.start_url)
+        seed_domain = get_domain(seed)
         queue: deque[CrawlTask] = deque()
 
         if self._filter.should_crawl(seed):
             queue.append(CrawlTask(url=seed, depth=0))
 
-        pages_kept = len(documents)
+        # Only count documents from the current seed domain toward the limit,
+        # so pre-existing docs from other domains don't block the crawl.
+        pages_this_domain = sum(1 for d in documents.values() if d.source == seed_domain)
         pages_fetched = 0
         pages_failed = 0
 
         with self._fetcher:
-            while queue and pages_kept < self._config.max_pages:
+            while queue and pages_this_domain < self._config.max_pages:
                 task = queue.popleft()
 
                 if task.depth > self._config.max_depth:
@@ -111,10 +114,10 @@ class Crawler:
 
                 # Store (keyed by doc_id so re-crawled pages overwrite).
                 documents[doc.doc_id] = doc
-                pages_kept = len(documents)
+                pages_this_domain += 1
                 logger.info(
                     "[%d/%d] %s  (%d words, %s)",
-                    pages_kept, self._config.max_pages,
+                    pages_this_domain, self._config.max_pages,
                     doc.title or "(untitled)",
                     doc.word_count,
                     doc.content_type,
