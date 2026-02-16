@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
@@ -21,6 +22,7 @@ class CrawlConfig:
     request_timeout_seconds: float = 10.0
     user_agent: str = DEFAULT_USER_AGENT
     allowed_path_prefix: str | None = None
+    allowed_path_regex: str | None = None
     max_retries: int = 2
     retry_backoff_seconds: float = 0.5
     parser_backend: str = "beautifulsoup"
@@ -55,6 +57,15 @@ class CrawlConfig:
                 raise ValueError("allowed_path_prefix must start with '/'")
             self.allowed_path_prefix = normalized_prefix
 
+        if self.allowed_path_regex:
+            try:
+                re.compile(self.allowed_path_regex)
+            except re.error as e:
+                raise ValueError(f"allowed_path_regex is not a valid regex: {e}")
+
+        if self.allowed_path_prefix and self.allowed_path_regex:
+            raise ValueError("Use --allowed-path-prefix or --allowed-path-regex, not both")
+
     @classmethod
     def from_namespace(cls, args: object) -> "CrawlConfig":
         """Build validated config from argparse namespace-like object."""
@@ -68,6 +79,7 @@ class CrawlConfig:
             request_timeout_seconds=float(getattr(args, "timeout")),
             user_agent=str(getattr(args, "user_agent")),
             allowed_path_prefix=getattr(args, "allowed_path_prefix"),
+            allowed_path_regex=getattr(args, "allowed_path_regex", None),
             max_retries=int(getattr(args, "max_retries")),
             retry_backoff_seconds=float(getattr(args, "retry_backoff_seconds")),
             parser_backend=str(getattr(args, "parser_backend", "beautifulsoup")),

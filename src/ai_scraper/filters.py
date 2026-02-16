@@ -43,15 +43,17 @@ _NON_CONTENT_PATTERNS = re.compile(
 class URLFilter:
     """Decides whether a discovered URL should be added to the crawl queue.
 
-    Applies four checks in order
+    Applies five checks in order
         1. Duplicate
         2. Unwanted File extension
-        3. Non-content pattern — login, search, admin, dashboard,settings
+        3. Non-content pattern — login, search, admin, dashboard, settings
         4. Path prefix — outside the allowed section of the site
+        5. Path regex — does not match the allowed pattern
     """
 
     def __init__(self, config: CrawlConfig) -> None:
         self._allowed_prefix = config.allowed_path_prefix
+        self._allowed_regex = re.compile(config.allowed_path_regex) if config.allowed_path_regex else None
         self._seen: set[str] = set()
 
     def should_crawl(self, url: str) -> bool:
@@ -73,6 +75,10 @@ class URLFilter:
 
         if self._allowed_prefix and not path.startswith(self._allowed_prefix.lower()):
             logger.debug("Skipped (prefix mismatch): %s", url)
+            return False
+
+        if self._allowed_regex and not self._allowed_regex.search(parsed.path):
+            logger.debug("Skipped (regex mismatch): %s", url)
             return False
 
         return True

@@ -38,7 +38,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--allowed-path-prefix",
         default=None,
-        help="Optional path prefix filter (example: /3/tutorial/)",
+        help="Only crawl URLs whose path starts with this prefix (e.g. /docs/)",
+    )
+    parser.add_argument(
+        "--allowed-path-regex",
+        default=None,
+        help="Only crawl URLs whose path matches this regex (e.g. '/blog/\\d{4}/')",
     )
     parser.add_argument(
         "--max-retries",
