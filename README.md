@@ -1,6 +1,6 @@
 # Web Scraper for AI agents
 
-> Scrape, clean, and enrich web content into AI-ready documents (JSONL) for RAG, search, and training pipelines.
+##### Scrape, clean, and enrich web content into AI-ready documents (JSONL) for RAG, search, and training pipelines.
 
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue) ![Sandbox](https://img.shields.io/badge/sandbox-books.toscrape.com-green)
 
