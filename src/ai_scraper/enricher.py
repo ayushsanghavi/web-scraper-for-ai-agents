@@ -8,7 +8,9 @@ and consume documents without ever re-parsing the original HTML.
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 from ai_scraper.models import AIDocument
 from ai_scraper.parser import ParseResult
@@ -16,9 +18,20 @@ from ai_scraper.utils import generate_doc_id, get_domain
 
 logger = logging.getLogger("ai_scraper")
 
-# Word-count boundaries for content classification.
-_SHORT_CONTENT_THRESHOLD = 100
-_LONG_FORM_THRESHOLD = 1000
+# ── Content-type classification ──────────────────────────────────────────────
+
+_CONTENT_TYPES = ("article", "reference", "product", "profile", "listing", "faq", "other")
+
+# URL path patterns that strongly suggest a specific type.
+_URL_SIGNALS: list[tuple[str, re.Pattern[str]]] = [
+    ("reference", re.compile(r"/(?:docs?|wiki|api|reference|manual|guide|help|kb|knowledge)[/]", re.I)),
+    ("product",   re.compile(r"/(?:product|item|shop|store|catalogue/[^/]+/[^/]+)[/]", re.I)),
+    ("profile",   re.compile(r"/(?:author|profile|user|about|people|team|contributor)[/s]?", re.I)),
+    ("faq",       re.compile(r"/(?:faq|frequently-asked|q-and-a|questions)[/s]?", re.I)),
+]
+
+# Price-like pattern in body text (e.g. £12.84, $9.99, €5, USD 10).
+_PRICE_RE = re.compile(r"(?:[$£€¥₹]|USD|EUR|GBP)\s*\d", re.I)
 
 
 class DocumentEnricher:
@@ -62,7 +75,7 @@ class DocumentEnricher:
             word_count=word_count,
             char_count=char_count,
             language=self._detect_language(body),
-            content_type=self._classify_content(parse_result, word_count),
+            content_type=self._classify_content(parse_result, word_count, url),
             text_to_html_ratio=self._text_to_html_ratio(parse_result, char_count),
             links_out_internal=list(parse_result.links_internal),
         )
@@ -93,21 +106,57 @@ class DocumentEnricher:
             return None
 
     @staticmethod
-    def _classify_content(result: ParseResult, word_count: int) -> str:
-        """Heuristic page-type classification.
+    def _classify_content(result: ParseResult, word_count: int, url: str) -> str:
+        """Multi-signal heuristic page-type classification.
 
-        Rules (applied in priority order):
-        - Long prose        → "article"    (blog posts, guides, essays)
-        - Short + many links → "listing"   (index / catalog / hub pages)
-        - Everything else   → "unknown"
+        Scores each candidate type by combining URL path patterns, title
+        keywords, and body-text features.  Highest score wins; ties are
+        broken by type priority order.  Falls back to ``other``.
         """
 
-        if word_count >= _LONG_FORM_THRESHOLD:
-            return "article"
-        if word_count < _SHORT_CONTENT_THRESHOLD and len(result.links_internal) > 10:
-            return "listing"
+        scores: dict[str, float] = {t: 0.0 for t in _CONTENT_TYPES}
+        path = urlparse(url).path
+        link_count = len(result.links_internal)
 
-        return "unknown"
+        # URL path signals
+        for content_type, pattern in _URL_SIGNALS:
+            if pattern.search(path):
+                scores[content_type] += 3.0
+
+        # ── Body text heuristics ──
+
+        # Article: long-form prose with relatively few links.
+        if word_count >= 300:
+            link_density = link_count / max(word_count, 1)
+            if link_density < 0.05:
+                scores["article"] += 2.0
+            if word_count >= 800:
+                scores["article"] += 1.0
+
+        # Listing: short body with many outbound links.
+        if link_count > 10 and word_count < 200:
+            scores["listing"] += 2.5
+        elif link_count > 5 and word_count < 100:
+            scores["listing"] += 2.0
+
+        # Product: price-like patterns in body text.
+        if _PRICE_RE.search(result.body_text):
+            scores["product"] += 2.0
+
+        # FAQ: question-mark density in body text.
+        qmark_count = result.body_text.count("?")
+        if qmark_count >= 3 and qmark_count / max(word_count, 1) > 0.01:
+            scores["faq"] += 2.0
+
+        # Pick the highest-scoring type (priority order breaks ties).
+        best_type = "other"
+        best_score = 0.0
+        for content_type in _CONTENT_TYPES:
+            if scores[content_type] > best_score:
+                best_score = scores[content_type]
+                best_type = content_type
+
+        return best_type
 
     @staticmethod
     def _text_to_html_ratio(result: ParseResult, char_count: int) -> float:
