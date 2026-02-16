@@ -2,9 +2,7 @@
 
 > Scrape, clean, and enrich web content into AI-ready documents (JSONL) for RAG, search, and training pipelines.
 
-**Requires Python 3.11 or newer** 
-
-**Default target: [books.toscrape.com](https://books.toscrape.com)** — a free, public sandbox site designed specifically for testing web scrapers.
+![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue) ![Sandbox](https://img.shields.io/badge/sandbox-books.toscrape.com-green)
 
 ---
 
@@ -55,7 +53,8 @@ docker run --rm -v $(pwd)/output:/app/output ai-scraper \
 | `--max-depth`           | 2 | Maximum link-follow depth from seed |
 | `--delay-seconds`       | 0.5 | Throttle delay between requests |
 | `--timeout`             | 10.0 | HTTP request timeout (seconds) |
-| `--allowed-path-prefix` | None | Only crawl URLs under this path (e.g. `/docs/`) |
+| `--allowed-path-prefix` | None | Only crawl URLs whose path starts with this prefix (e.g. `/docs/`) |
+| `--allowed-path-regex`  | None | Only crawl URLs whose path matches this regex (e.g. `/blog/\d{4}/`) |
 | `--max-retries`         | 2 | Retry count for transient HTTP failures |
 | `--user-agent`          | `ai-scraper/1.0` | User-Agent header |
 | `--parser`              | `beautifulsoup` | Content extraction backend: `beautifulsoup` or `trafilatura` |
@@ -80,7 +79,7 @@ Each line in the output JSONL file is a JSON object with these fields:
 | `word_count` | int | Word count of body_text |
 | `char_count` | int | Character count of body_text |
 | `language` | string? | ISO 639-1 code (`en`, `fr`, etc.) or null if too short to detect |
-| `content_type` | string? | Heuristic: `article`, `listing`, or `unknown` |
+| `content_type` | string | Heuristic classification: `article`, `reference`, `product`, `profile`, `listing`, `faq`, or `other` |
 | `text_to_html_ratio` | float | Ratio of extracted text to raw HTML length — higher = cleaner extraction |
 | `links_out_internal` | array | Internal links discovered on the page |
 
@@ -128,7 +127,17 @@ doc.title               # "Page Title"
 doc.body_text           # cleaned main content
 doc.word_count          # 396
 doc.language            # "en"
-doc.content_type        # "article", "listing", or "unknown"
+doc.content_type        # "article", "reference", "product", "profile", "listing", "faq", or "other"
 doc.text_to_html_ratio  # 0.15 (higher = cleaner extraction)
 doc.to_dict()           # JSON-serializable dict for downstream systems
 ```
+
+---
+
+## Possible Extensions (future scope)
+
+- **Async fetching** — swap `requests` for `aiohttp` to fetch multiple pages concurrently while still respecting rate limits
+- **Embedding generation** — compute vector embeddings at scrape time so documents are index-ready
+- **Entity extraction** — pull out named entities (names, amounts, regulation numbers) via spaCy or an LLM
+- **Summarization** — generate a short summary per document for search snippets
+- **Distributed crawling** — use a message queue (Redis, SQS) as the crawl frontier for multi-worker parallelism
