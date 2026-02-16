@@ -20,7 +20,7 @@ logger = logging.getLogger("ai_scraper")
 
 # ── Content-type classification ──────────────────────────────────────────────
 
-_CONTENT_TYPES = ("article", "reference", "product", "profile", "listing", "faq", "other")
+_CONTENT_TYPES = ("article", "product", "listing", "faq", "other")
 
 # URL path patterns that strongly suggest a specific type.
 _URL_SIGNALS: list[tuple[str, re.Pattern[str]]] = [

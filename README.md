@@ -139,7 +139,7 @@ doc.title               # "Page Title"
 doc.body_text           # cleaned main content
 doc.word_count          # 396
 doc.language            # "en"
-doc.content_type        # "article", "reference", "product", "profile", "listing", "faq", or "other"
+doc.content_type        # "article", "product", "listing", "faq", or "other"
 doc.text_to_html_ratio  # 0.15 (higher = cleaner extraction)
 doc.to_dict()           # JSON-serializable dict for downstream systems
 ```
